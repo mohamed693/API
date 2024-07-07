@@ -100,7 +100,12 @@ namespace ECommereceApi.Repo
             var results = cartProducts.ProductsAmounts.Select(p => IsProductExistWithAmounts(p)).ToList();
             return results.All(r => r);
         }
-
+        public async Task<bool> IsProductInActiveOrderAsync(int productId)
+        {
+            return await _db.ProductOrders.Include(po => po.Order)
+                .FirstOrDefaultAsync(po => po.ProductId == productId && (po.Order.Status == OrderStatus.Delivered || po.Order.Status == OrderStatus.Cancelled))
+                is not null;
+        }
         public bool IsProductExistWithAmounts(ProductDisplayInCartDTO product)
         {
             return _db.Products.Any(p => p.ProductId == product.ProductId && p.Amount >= product.Amount);

@@ -1,4 +1,5 @@
-﻿using ECommereceApi.DTOs.Product;
+﻿using ECommereceApi.DTOs.Order;
+using ECommereceApi.DTOs.Product;
 using ECommereceApi.Models;
 using ECommereceApi.Repo;
 
@@ -46,6 +47,7 @@ namespace ECommereceApi.IRepo
         Task<bool> IsCategorySubCategoryExistsAsync(int categoryId, int subCategoryId);
         Task<bool> IsCategoryExistsAsync(int id);
         Task<bool> IsSubCategoryExistsAsync(int id);
+        Task SubtractProductAmountFromStock(List<ProductOrderStockDTO> productOrderStockDTOs);
         Task<int> GetCategorySubCategoryIdFromSeparateIds(int categoryId, int subCategoryId);
         Task<ICollection<ProductDisplayDTO>> GetProductsDisplayDTOsFromCategorySubCategoryIdAndValueAsync(int categorySubCategoryId, string value);
         bool IsOrgignalPriceGreaterThanDiscount(double originalPrice, double? discount);

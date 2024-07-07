@@ -2,6 +2,8 @@
 using AutoMapper;
 using ECommereceApi.DTOs.Product;
 using ECommereceApi.Services.Interfaces;
+using ECommereceApi.DTOs.Order;
+using Serilog;
 
 namespace ECommereceApi.Repo
 {
@@ -38,6 +40,41 @@ namespace ECommereceApi.Repo
                 .Include(p => p.ProductOrders)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
+
+        //***Hamed***
+        public async Task SubtractProductAmountFromStock(List<ProductOrderStockDTO> productOrderStockDTOs)
+        {
+            using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var productOrderStockDTO in productOrderStockDTOs)
+                    {
+                        var product = await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productOrderStockDTO.ProductId);
+                        if (product == null)
+                            continue;
+
+                        if (product.Amount < productOrderStockDTO.Amount)
+                        {
+                            throw new Exception($"The amount of the product {product.ProductId} is less than the amount of the order");
+                        }
+
+                        product.Amount -= productOrderStockDTO.Amount;
+                        _db.Products.Update(product);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Log.Error("Error in SubtractProductAmountFromStock: {0}", ex.Message);
+                    throw;
+                }
+            }
+        }
+
         public async Task<Status> DeleteProductAsync(int id)
         {
             var product = await _db.Products.Include(p => p.ProductOffers).FirstOrDefaultAsync(p => p.ProductId == id);

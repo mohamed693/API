@@ -21,5 +21,6 @@ namespace ECommereceApi.IRepo
 
         Task<OrderStatsDTO> GetOrderStats();
         Task<OrderStatsDTO> GetUserOrderStats(int userId);
+        Task<bool> IsProductInActiveOrderAsync(int productId);
     }
 }

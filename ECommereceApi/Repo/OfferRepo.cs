@@ -43,6 +43,12 @@ namespace ECommereceApi.Repo
             offers = offers.Where(x => !OfferExpiredOrInActive(x)).ToList();
             return offers;
         }
+        public async Task<bool> IsProductInActiveOrComingOfferAsync(int productId)
+        {
+            return await _context.ProductOffers.Include(po => po.Offer)
+                .FirstOrDefaultAsync(po => po.ProductId == productId && po.Offer.OfferDate.AddDays(po.Offer.Duration) < DateOnly.FromDateTime(DateTime.Now)) is not null;
+        }
+
         public async Task<List<OffersDTOUI>> GetOffersWithProducts()
         {
             try
