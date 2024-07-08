@@ -407,6 +407,9 @@ namespace ECommereceApi.Repo
                                 await _notificationService.AddNotificationToAllAdmins($"المنتج {_prod.Name} نفذ من المخزن", "#");
                             }
                         }
+
+                        //call the Update Products Scores
+                        await _productSalesManagment.UpdateProductsScores(productOrderStockDTOs.Select(o => o.ProductId));
                         break;
 
                     case OrderStatus.Shipped:
