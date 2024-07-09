@@ -417,7 +417,7 @@ namespace ECommereceApi.Repo
                         order.ArrivalInDays = arrivalInDays;
 
                         // Call Notification Service to Notify the User
-                        await _notificationService.AddNotificationToUser(order.UserId, $"Your Order has been Shipped and the Arrival will be in {arrivalInDays} days", "#");
+                        await _notificationService.AddNotificationToUser(order.UserId, $"لقد تم شحن طلبك وسيتم الوصول إليك فى {arrivalInDays} أيام", "#");
 
                         break;
 

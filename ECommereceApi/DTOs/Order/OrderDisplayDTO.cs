@@ -45,7 +45,6 @@ namespace ECommereceApi.DTOs.Order
         public int? TotalAmount { get; set; }
 
         public PaymentMethod? PaymentMethod{ get; set; }
-        public decimal? Score { get; set; }
 
     }
 

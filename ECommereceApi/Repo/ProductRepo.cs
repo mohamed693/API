@@ -40,41 +40,6 @@ namespace ECommereceApi.Repo
                 .Include(p => p.ProductOrders)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
-
-        //***Hamed***
-        public async Task SubtractProductAmountFromStock(List<ProductOrderStockDTO> productOrderStockDTOs)
-        {
-            using (var transaction = await _db.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    foreach (var productOrderStockDTO in productOrderStockDTOs)
-                    {
-                        var product = await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productOrderStockDTO.ProductId);
-                        if (product == null)
-                            continue;
-
-                        if (product.Amount < productOrderStockDTO.Amount)
-                        {
-                            throw new Exception($"The amount of the product {product.ProductId} is less than the amount of the order");
-                        }
-
-                        product.Amount -= productOrderStockDTO.Amount;
-                        _db.Products.Update(product);
-                    }
-
-                    await _db.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    Log.Error("Error in SubtractProductAmountFromStock: {0}", ex.Message);
-                    throw;
-                }
-            }
-        }
-
         public async Task<Status> DeleteProductAsync(int id)
         {
             var product = await _db.Products.Include(p => p.ProductOffers).FirstOrDefaultAsync(p => p.ProductId == id);
@@ -84,8 +49,21 @@ namespace ECommereceApi.Repo
                 return Status.Failed;
             }
             _db.Products.Remove(product);
+            await DeleteAllProductImages(id);
             await MySaveChangesAsync();
             return Status.Success;
+        }
+        public async Task<List<string>> GetProductImaegsUrlsAsync(int productId)
+        {
+            return await  _db.ProductImages.Where(p => p.ProductId == productId).Select(p => _fileCloudService.GetImageUrl(p.ImageId)).ToListAsync();
+        }
+        public async Task DeleteAllProductImages(int productId)
+        {
+            var Resulturls = await GetProductImaegsUrlsAsync(productId);
+            foreach (var url in Resulturls)
+            {
+                await RemoveProductPictureAsync(productId, url);
+            }
         }
         public async Task MySaveChangesAsync()
         {
@@ -103,7 +81,7 @@ namespace ECommereceApi.Repo
         public async Task<ICollection<ProductDisplayDTO>> GetProductDisplayDTOsByIdsAsync(ICollection<int> ids)
         {
             var output = new List<ProductDisplayDTO>();
-            foreach(var id in ids)
+            foreach (var id in ids)
                 output.Add(await GetProductDisplayDTOByIdAsync(id));
             return output;
         }
@@ -427,15 +405,15 @@ namespace ECommereceApi.Repo
         }
         public async Task<Status> RemoveProductPictureAsync(int productId, string picture)
         {
-            Product product = await _db.Products.Include(p => p.ProductImages).FirstOrDefaultAsync(p => p.ProductId == productId);
+            Product? product = await _db.Products.Include(p => p.ProductImages).FirstOrDefaultAsync(p => p.ProductId == productId);
             if (product == null)
                 return Status.NotFound;
-            ProductImage image = product.ProductImages.Where(image => _fileCloudService.GetImageUrl(image.ImageId) == picture).FirstOrDefault();
+            ProductImage? image = product.ProductImages.Where(image => _fileCloudService.GetImageUrl(image.ImageId) == picture).FirstOrDefault();
             if (image == null)
                 return Status.NotFound;
             product.ProductImages.Remove(image);
             //DeleteImage(image.ImageId);
-            _fileCloudService.DeleteImageAsync(image.ImageId);
+            await _fileCloudService.DeleteImageAsync(image.ImageId);
             await MySaveChangesAsync();
             return Status.Success;
         }
@@ -685,10 +663,45 @@ namespace ECommereceApi.Repo
         }
         public bool IsOrgignalPriceGreaterThanDiscount(double originalPrice, double? discount)
         {
-            if(discount is null)
+            if (discount is null)
                 return true;
-            else 
+            else
                 return originalPrice > discount;
         }
+
+        //***Hamed***
+        public async Task SubtractProductAmountFromStock(List<ProductOrderStockDTO> productOrderStockDTOs)
+        {
+            using (var transaction = await _db.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    foreach (var productOrderStockDTO in productOrderStockDTOs)
+                    {
+                        var product = await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productOrderStockDTO.ProductId);
+                        if (product == null)
+                            continue;
+
+                        if (product.Amount < productOrderStockDTO.Amount)
+                        {
+                            throw new Exception($"The amount of the product {product.ProductId} is less than the amount of the order");
+                        }
+
+                        product.Amount -= productOrderStockDTO.Amount;
+                        _db.Products.Update(product);
+                    }
+
+                    await _db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Log.Error("Error in SubtractProductAmountFromStock: {0}", ex.Message);
+                    throw;
+                }
+            }
+        }
+
     }
 }

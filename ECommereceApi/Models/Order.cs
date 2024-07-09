@@ -55,5 +55,4 @@ public partial class Order
     public PaymentMethod? PaymentMethod { get; set; }
 	public double? TotalPrice { get; set; }
 	public int? TotalAmount { get; set; }
-    public decimal? Score { get; set; }
 }

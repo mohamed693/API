@@ -79,7 +79,7 @@ namespace ECommereceApi.Controllers
             if (orders.Items.Count > 0)
                 return Ok(orders);
 
-            return Ok("No orders found for this user");
+            return Ok();
         }
         [HttpGet]
         [Route("GetAllOrdersPaginated")]
@@ -92,7 +92,7 @@ namespace ECommereceApi.Controllers
             if (orders.Items.Count > 0)
                 return Ok(orders);
 
-            return Ok("No orders found for this user");
+            return Ok();
         }
 
         [HttpGet]
@@ -106,7 +106,7 @@ namespace ECommereceApi.Controllers
             if (orders.Items.Count > 0)
                 return Ok(orders);
 
-            return Ok("No orders found for this user");
+            return Ok();
         }
 
         [HttpGet]
